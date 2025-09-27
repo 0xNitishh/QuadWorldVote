@@ -1,18 +1,13 @@
 'use client'
 
-import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { Home, Plus, Vote, Trophy } from 'lucide-react'
 
 interface HeaderProps {
-  currentView: string
-  onViewChange: (view: 'home' | 'create' | 'vote' | 'results') => void
-  isConnected: boolean
-  isVerified: boolean
+  currentView?: string
+  onViewChange?: (view: 'home' | 'organizer' | 'voter' | 'results') => void
 }
 
-export function Header({ currentView, onViewChange, isConnected, isVerified }: HeaderProps) {
-  if (!isConnected) return null
-
+export function Header({ currentView, onViewChange }: HeaderProps) {
   return (
     <header className="bg-white shadow-sm border-b">
       <div className="container mx-auto px-4 py-4">
@@ -24,7 +19,7 @@ export function Header({ currentView, onViewChange, isConnected, isVerified }: H
             <h1 className="text-xl font-bold text-gray-900">QuadWorldVote</h1>
           </div>
           
-          {isVerified && (
+          {onViewChange && (
             <nav className="flex items-center space-x-4">
               <button
                 onClick={() => onViewChange('home')}
@@ -39,15 +34,27 @@ export function Header({ currentView, onViewChange, isConnected, isVerified }: H
               </button>
               
               <button
-                onClick={() => onViewChange('create')}
+                onClick={() => onViewChange('organizer')}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                  currentView === 'create'
+                  currentView === 'organizer'
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 <Plus className="w-4 h-4" />
-                <span>Create Contest</span>
+                <span>Organizer</span>
+              </button>
+              
+              <button
+                onClick={() => onViewChange('voter')}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                  currentView === 'voter'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <Vote className="w-4 h-4" />
+                <span>Voter</span>
               </button>
               
               <button
@@ -65,13 +72,7 @@ export function Header({ currentView, onViewChange, isConnected, isVerified }: H
           )}
           
           <div className="flex items-center space-x-4">
-            {isVerified && (
-              <div className="flex items-center space-x-2 text-sm text-green-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Verified Human</span>
-              </div>
-            )}
-            <ConnectButton />
+            <div className="text-sm text-gray-600">Powered by World Chain</div>
           </div>
         </div>
       </div>

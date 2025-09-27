@@ -1,8 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { ContestFactoryABI } from '@/lib/contracts'
 import { Calendar, Clock, Users, Settings } from 'lucide-react'
 
 interface CreateContestProps {
@@ -10,7 +8,6 @@ interface CreateContestProps {
 }
 
 export function CreateContest({ onContestCreated }: CreateContestProps) {
-  const { address } = useAccount()
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -22,54 +19,15 @@ export function CreateContest({ onContestCreated }: CreateContestProps) {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const { writeContract, data: hash, error, isPending } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  })
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!address) return
-
     setIsSubmitting(true)
     
-    const startTimestamp = Math.floor(new Date(formData.startTime).getTime() / 1000)
-    const endTimestamp = Math.floor(new Date(formData.endTime).getTime() / 1000)
-
-    try {
-      writeContract({
-        address: process.env.NEXT_PUBLIC_CONTEST_FACTORY_ADDRESS as `0x${string}`,
-        abi: ContestFactoryABI,
-        functionName: 'createContest',
-        args: [
-          formData.title,
-          formData.description,
-          BigInt(startTimestamp),
-          BigInt(endTimestamp),
-          BigInt(formData.creditsPerVoter),
-          BigInt(formData.maxProjects),
-          formData.allowSelfSubmit
-        ],
-      })
-    } catch (err) {
-      console.error('Error creating contest:', err)
+    // Simulate contract deployment
+    setTimeout(() => {
       setIsSubmitting(false)
-    }
-  }
-
-  if (isSuccess) {
-    onContestCreated()
-    return (
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Calendar className="w-6 h-6 text-green-600" />
-          </div>
-          <h3 className="text-lg font-semibold text-green-800 mb-2">Contest Created Successfully!</h3>
-          <p className="text-green-600">Your quadratic voting contest is now live on World Chain.</p>
-        </div>
-      </div>
-    )
+      onContestCreated()
+    }, 2000)
   }
 
   return (
@@ -190,18 +148,12 @@ export function CreateContest({ onContestCreated }: CreateContestProps) {
             </label>
           </div>
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-600 text-sm">Error: {error.message}</p>
-            </div>
-          )}
-
           <button
             type="submit"
-            disabled={isPending || isConfirming || isSubmitting}
+            disabled={isSubmitting}
             className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
-            {isPending || isConfirming ? 'Creating Contest...' : 'Create Contest'}
+            {isSubmitting ? 'Creating Contest...' : 'Create Contest'}
           </button>
         </form>
       </div>

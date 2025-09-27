@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { ContestABI } from '@/lib/contracts'
 import { ArrowLeft, Vote, CheckCircle, AlertCircle } from 'lucide-react'
 
 interface Project {
@@ -18,7 +16,6 @@ interface VoteInterfaceProps {
 }
 
 export function VoteInterface({ contestAddress, onBack }: VoteInterfaceProps) {
-  const { address } = useAccount()
   const [projects, setProjects] = useState<Project[]>([])
   const [allocations, setAllocations] = useState<number[]>([])
   const [totalCost, setTotalCost] = useState(0)
@@ -26,63 +23,33 @@ export function VoteInterface({ contestAddress, onBack }: VoteInterfaceProps) {
   const [hasVoted, setHasVoted] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // Get contest info
-  const { data: contestInfo } = useReadContract({
-    address: contestAddress as `0x${string}`,
-    abi: ContestABI,
-    functionName: 'getContestInfo',
-  })
-
-  // Get project count
-  const { data: projectCount } = useReadContract({
-    address: contestAddress as `0x${string}`,
-    abi: ContestABI,
-    functionName: 'getProjectCount',
-  })
-
-  // Check if user has already voted
-  const { data: userBallot } = useReadContract({
-    address: contestAddress as `0x${string}`,
-    abi: ContestABI,
-    functionName: 'ballots',
-    args: address ? [address] : undefined,
-  })
-
-  const { writeContract, data: hash, error, isPending } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
-  })
-
   useEffect(() => {
-    if (contestInfo) {
-      const info = contestInfo as any
-      setCreditsPerVoter(Number(info.creditsPerVoter))
-    }
-  }, [contestInfo])
+    // Mock projects data
+    const mockProjects: Project[] = [
+      {
+        id: 0,
+        title: 'Uniswap V4',
+        description: 'Next generation DEX with hooks architecture',
+        submitter: '0x1234...5678'
+      },
+      {
+        id: 1,
+        title: 'Aave V4',
+        description: 'Advanced lending protocol with cross-chain support',
+        submitter: '0x2345...6789'
+      },
+      {
+        id: 2,
+        title: 'Compound V3',
+        description: 'Capital efficient lending with isolated markets',
+        submitter: '0x3456...7890'
+      }
+    ]
 
-  useEffect(() => {
-    if (projectCount) {
-      const count = Number(projectCount)
-      setAllocations(new Array(count).fill(0))
-      
-      // Mock projects data - in real implementation, you'd fetch from contract
-      const mockProjects: Project[] = Array.from({ length: count }, (_, i) => ({
-        id: i,
-        title: `Project ${i + 1}`,
-        description: `Description for project ${i + 1}`,
-        submitter: `0x${Math.random().toString(16).substr(2, 40)}`
-      }))
-      setProjects(mockProjects)
-      setLoading(false)
-    }
-  }, [projectCount])
-
-  useEffect(() => {
-    if (userBallot) {
-      const ballot = userBallot as any
-      setHasVoted(ballot.exists)
-    }
-  }, [userBallot])
+    setProjects(mockProjects)
+    setAllocations(new Array(mockProjects.length).fill(0))
+    setLoading(false)
+  }, [])
 
   useEffect(() => {
     const cost = allocations.reduce((sum, allocation) => sum + allocation * allocation, 0)
@@ -96,26 +63,10 @@ export function VoteInterface({ contestAddress, onBack }: VoteInterfaceProps) {
   }
 
   const handleVote = async () => {
-    if (!address || hasVoted) return
-
-    // Mock World ID proof - in real implementation, you'd get this from World ID widget
-    const mockProof = Array(8).fill(0).map(() => BigInt(Math.floor(Math.random() * 1000000)))
-    const mockNullifier = BigInt(Math.floor(Math.random() * 1000000))
-
-    try {
-      writeContract({
-        address: contestAddress as `0x${string}`,
-        abi: ContestABI,
-        functionName: 'castBallot',
-        args: [
-          mockProof,
-          mockNullifier,
-          allocations.map(a => BigInt(a))
-        ],
-      })
-    } catch (err) {
-      console.error('Error casting vote:', err)
-    }
+    // Simulate voting
+    setTimeout(() => {
+      setHasVoted(true)
+    }, 2000)
   }
 
   if (loading) {
@@ -147,10 +98,6 @@ export function VoteInterface({ contestAddress, onBack }: VoteInterfaceProps) {
         </div>
       </div>
     )
-  }
-
-  if (isSuccess) {
-    setHasVoted(true)
   }
 
   return (
@@ -194,7 +141,7 @@ export function VoteInterface({ contestAddress, onBack }: VoteInterfaceProps) {
                   </h3>
                   <p className="text-gray-600 mb-2">{project.description}</p>
                   <p className="text-sm text-gray-500">
-                    Submitted by: {project.submitter.slice(0, 6)}...{project.submitter.slice(-4)}
+                    Submitted by: {project.submitter}
                   </p>
                 </div>
                 <div className="text-right">
@@ -252,18 +199,12 @@ export function VoteInterface({ contestAddress, onBack }: VoteInterfaceProps) {
             </p>
           )}
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-              <p className="text-red-600 text-sm">Error: {error.message}</p>
-            </div>
-          )}
-
           <button
             onClick={handleVote}
-            disabled={isPending || isConfirming || totalCost > creditsPerVoter || totalCost === 0}
+            disabled={totalCost > creditsPerVoter || totalCost === 0}
             className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
-            {isPending || isConfirming ? 'Submitting Vote...' : 'Cast Vote'}
+            Cast Vote
           </button>
         </div>
       </div>

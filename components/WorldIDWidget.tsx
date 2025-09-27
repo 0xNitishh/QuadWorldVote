@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useCallback } from 'react'
-import { IDKitWidget } from '@worldcoin/idkit'
 
 interface WorldIDWidgetProps {
   onSuccess: () => void
@@ -9,27 +8,20 @@ interface WorldIDWidgetProps {
 
 export function WorldIDWidget({ onSuccess }: WorldIDWidgetProps) {
   const handleSuccess = useCallback(() => {
-    onSuccess()
+    // Simulate World ID verification
+    setTimeout(() => {
+      onSuccess()
+    }, 2000)
   }, [onSuccess])
 
   return (
     <div className="flex justify-center">
-      <IDKitWidget
-        app_id="app_staging_1234567890abcdef" // Replace with your actual app ID
-        action="quadworldvote-verification"
-        signal="user-verification"
-        onSuccess={handleSuccess}
-        verification_level="orb"
+      <button
+        onClick={handleSuccess}
+        className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
       >
-        {({ open }: { open: () => void }) => (
-          <button
-            onClick={open}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
-            Verify with World ID
-          </button>
-        )}
-      </IDKitWidget>
+        Verify with World ID (Demo)
+      </button>
     </div>
   )
 }

@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAccount, useReadContract } from 'wagmi'
-import { ContestFactoryABI, ContestABI } from '@/lib/contracts'
 import { Calendar, Clock, Users, ArrowRight, Trophy } from 'lucide-react'
 
 interface Contest {
@@ -19,52 +17,43 @@ interface Contest {
 }
 
 export function ContestList({ onContestSelect }: { onContestSelect: (address: string) => void }) {
-  const { address } = useAccount()
   const [contests, setContests] = useState<Contest[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Get all contests from factory
-  const { data: allContests } = useReadContract({
-    address: process.env.NEXT_PUBLIC_CONTEST_FACTORY_ADDRESS as `0x${string}`,
-    abi: ContestFactoryABI,
-    functionName: 'getAllContests',
-  })
-
   useEffect(() => {
-    const fetchContestDetails = async () => {
-      if (!allContests) return
+    // Mock data for demonstration
+    const mockContests: Contest[] = [
+      {
+        address: '0x1234567890123456789012345678901234567890',
+        title: 'Best DeFi Protocol 2024',
+        description: 'Vote for the most innovative DeFi protocol of the year',
+        startTime: Date.now() / 1000 - 3600,
+        endTime: Date.now() / 1000 + 86400,
+        creditsPerVoter: 100,
+        maxProjects: 10,
+        projectCount: 5,
+        totalVotes: 23,
+        finalized: false
+      },
+      {
+        address: '0x2345678901234567890123456789012345678901',
+        title: 'Community Grant Allocation',
+        description: 'Decide how to allocate community development grants',
+        startTime: Date.now() / 1000 - 7200,
+        endTime: Date.now() / 1000 + 172800,
+        creditsPerVoter: 150,
+        maxProjects: 8,
+        projectCount: 6,
+        totalVotes: 45,
+        finalized: false
+      }
+    ]
 
-      setLoading(true)
-      const contestDetails = await Promise.all(
-        (allContests as string[]).map(async (contestAddress) => {
-          try {
-            // This would need to be implemented with useReadContract for each contest
-            // For now, we'll create mock data
-            return {
-              address: contestAddress,
-              title: `Contest ${contestAddress.slice(0, 6)}...`,
-              description: 'A quadratic voting contest on World Chain',
-              startTime: Date.now() / 1000 - 3600, // 1 hour ago
-              endTime: Date.now() / 1000 + 86400, // 24 hours from now
-              creditsPerVoter: 100,
-              maxProjects: 10,
-              projectCount: 3,
-              totalVotes: 15,
-              finalized: false
-            }
-          } catch (error) {
-            console.error('Error fetching contest details:', error)
-            return null
-          }
-        })
-      )
-
-      setContests(contestDetails.filter(Boolean) as Contest[])
+    setTimeout(() => {
+      setContests(mockContests)
       setLoading(false)
-    }
-
-    fetchContestDetails()
-  }, [allContests])
+    }, 1000)
+  }, [])
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp * 1000)

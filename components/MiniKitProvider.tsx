@@ -1,14 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAccount } from 'wagmi'
 
 interface MiniKitProviderProps {
   children: React.ReactNode
 }
 
 export function MiniKitProvider({ children }: MiniKitProviderProps) {
-  const { address, isConnected } = useAccount()
   const [isMiniKit, setIsMiniKit] = useState(false)
 
   useEffect(() => {

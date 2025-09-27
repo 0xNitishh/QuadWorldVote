@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useReadContract } from 'wagmi'
-import { ContestABI } from '@/lib/contracts'
 import { ArrowLeft, Trophy, Medal, Award, Users, CheckCircle } from 'lucide-react'
 
 interface ProjectResult {
@@ -21,57 +19,25 @@ export function Results({ contestAddress, onBack }: ResultsProps) {
   const [results, setResults] = useState<ProjectResult[]>([])
   const [loading, setLoading] = useState(true)
   const [finalized, setFinalized] = useState(false)
-
-  // Get contest info
-  const { data: contestInfo } = useReadContract({
-    address: contestAddress as `0x${string}`,
-    abi: ContestABI,
-    functionName: 'getContestInfo',
-  })
-
-  // Get project results
-  const { data: projectResults } = useReadContract({
-    address: contestAddress as `0x${string}`,
-    abi: ContestABI,
-    functionName: 'getProjectResults',
-  })
-
-  // Get total votes
-  const { data: totalVotes } = useReadContract({
-    address: contestAddress as `0x${string}`,
-    abi: ContestABI,
-    functionName: 'getTotalVotes',
-  })
+  const [totalVotes, setTotalVotes] = useState(0)
 
   useEffect(() => {
-    if (contestInfo) {
-      const info = contestInfo as any
-      setFinalized(info.finalized)
-    }
-  }, [contestInfo])
+    // Mock results data
+    const mockResults: ProjectResult[] = [
+      { id: 0, title: 'Uniswap V4', score: 85, rank: 1 },
+      { id: 1, title: 'Aave V4', score: 72, rank: 2 },
+      { id: 2, title: 'Compound V3', score: 58, rank: 3 },
+      { id: 3, title: 'MakerDAO', score: 45, rank: 4 },
+      { id: 4, title: 'Curve Finance', score: 38, rank: 5 }
+    ]
 
-  useEffect(() => {
-    if (projectResults) {
-      const [scores, titles] = projectResults as [number[], string[]]
-      
-      // Mock data for demonstration - in real implementation, you'd process the actual results
-      const mockResults: ProjectResult[] = titles.map((title, index) => ({
-        id: index,
-        title,
-        score: Math.floor(Math.random() * 100) + 10, // Mock scores
-        rank: 0 // Will be set after sorting
-      }))
-
-      // Sort by score and assign ranks
-      mockResults.sort((a, b) => b.score - a.score)
-      mockResults.forEach((result, index) => {
-        result.rank = index + 1
-      })
-
+    setTimeout(() => {
       setResults(mockResults)
+      setTotalVotes(127)
+      setFinalized(true)
       setLoading(false)
-    }
-  }, [projectResults])
+    }, 1000)
+  }, [])
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -130,7 +96,7 @@ export function Results({ contestAddress, onBack }: ResultsProps) {
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Contest Results</h2>
             <p className="text-gray-600">
-              {finalized ? 'Final results' : 'Live results'} • {totalVotes ? Number(totalVotes) : 0} total votes
+              {finalized ? 'Final results' : 'Live results'} • {totalVotes} total votes
             </p>
           </div>
         </div>
