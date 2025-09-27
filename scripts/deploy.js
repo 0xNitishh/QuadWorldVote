@@ -11,9 +11,9 @@ async function main() {
   console.log("Deploying ContestFactory...");
   const ContestFactory = await ethers.getContractFactory("ContestFactory");
   const contestFactory = await ContestFactory.deploy(WORLD_ID_ADDRESS, GROUP_ID);
-  await contestFactory.waitForDeployment();
+  await contestFactory.deployed();
 
-  const contestFactoryAddress = await contestFactory.getAddress();
+  const contestFactoryAddress = contestFactory.address;
   console.log("ContestFactory deployed to:", contestFactoryAddress);
 
   // Verify deployment

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 interface IWorldID {
     function verifyProof(
@@ -66,7 +66,7 @@ contract Contest is Ownable, ReentrancyGuard {
         uint256 _creditsPerVoter,
         uint256 _maxProjects,
         bool _allowSelfSubmit
-    ) {
+    ) Ownable(msg.sender) {
         worldId = IWorldID(_worldId);
         groupId = _groupId;
         actionId = _actionId;
