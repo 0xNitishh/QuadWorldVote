@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Wallet - MetaMask Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .wallet-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .wallet-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .connect-btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 53, 0.3);
+        }
+
+        .connect-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .wallet-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .wallet-info.show {
+            display: block;
+        }
+
+        .wallet-address {
+            font-family: monospace;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            word-break: break-all;
+            margin: 10px 0;
+            border: 1px solid #e0e0e0;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .network-info {
+            margin: 10px 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .disconnect-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .disconnect-btn:hover {
+            background: #c82333;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .connecting {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="wallet-container">
+        <div class="wallet-icon">🦊</div>
+        <h1>Connect Your Wallet</h1>
+        <p class="subtitle">Connect with MetaMask to get started</p>
+        
+        <button id="connectWallet" class="connect-btn">
+            <span id="buttonText">Connect MetaMask</span>
+        </button>
+        
+        <div id="status"></div>
+        
+        <div id="walletInfo" class="wallet-info">
+            <h3>Wallet Connected!</h3>
+            <div class="network-info">
+                <strong>Network:</strong> <span id="networkName">-</span>
+            </div>
+            <div class="wallet-address">
+                <strong>Address:</strong><br>
+                <span id="walletAddress">-</span>
+            </div>
+            <div class="network-info">
+                <strong>Balance:</strong> <span id="walletBalance">-</span> ETH
+            </div>
+            <button id="disconnectWallet" class="disconnect-btn">Disconnect</button>
+        </div>
+    </div>
+
+    <script>
+        let currentAccount = null;
+        let web3 = null;
+
+        // DOM elements
+        const connectBtn = document.getElementById('connectWallet');
+        const buttonText = document.getElementById('buttonText');
+        const statusDiv = document.getElementById('status');
+        const walletInfo = document.getElementById('walletInfo');
+        const walletAddress = document.getElementById('walletAddress');
+        const networkName = document.getElementById('networkName');
+        const walletBalance = document.getElementById('walletBalance');
+        const disconnectBtn = document.getElementById('disconnectWallet');
+
+        // Check if MetaMask is installed
+        function isMetaMaskInstalled() {
+            return typeof window.ethereum !== 'undefined' && window.ethereum.isMetaMask;
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => {
+                statusDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Get network name
+        async function getNetworkName(chainId) {
+            const networks = {
+                '0x1': 'Ethereum Mainnet',
+                '0x3': 'Ropsten Testnet',
+                '0x4': 'Rinkeby Testnet',
+                '0x5': 'Goerli Testnet',
+                '0xaa36a7': 'Sepolia Testnet',
+                '0x89': 'Polygon Mainnet',
+                '0x13881': 'Polygon Mumbai Testnet'
+            };
+            return networks[chainId] || `Unknown Network (${chainId})`;
+        }
+
+        // Get wallet balance
+        async function getBalance(address) {
+            try {
+                const balance = await window.ethereum.request({
+                    method: 'eth_getBalance',
+                    params: [address, 'latest']
+                });
+                // Convert from wei to ETH
+                return (parseInt(balance, 16) / Math.pow(10, 18)).toFixed(4);
+            } catch (error) {
+                console.error('Error getting balance:', error);
+                return '0.0000';
+            }
+        }
+
+        // Update wallet info display
+        async function updateWalletInfo(account) {
+            try {
+                // Get network info
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                const network = await getNetworkName(chainId);
+                
+                // Get balance
+                const balance = await getBalance(account);
+                
+                // Update UI
+                walletAddress.textContent = account;
+                networkName.textContent = network;
+                walletBalance.textContent = balance;
+                walletInfo.classList.add('show');
+            } catch (error) {
+                console.error('Error updating wallet info:', error);
+            }
+        }
+
+        // Connect to MetaMask
+        async function connectWallet() {
+            if (!isMetaMaskInstalled()) {
+                showStatus('MetaMask is not installed. Please install MetaMask extension.', 'error');
+                return;
+            }
+
+            try {
+                // Show connecting state
+                connectBtn.classList.add('connecting');
+                buttonText.textContent = 'Connecting...';
+                connectBtn.disabled = true;
+
+                // Request account access
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+
+                if (accounts.length > 0) {
+                    currentAccount = accounts[0];
+                    buttonText.textContent = 'Connected';
+                    showStatus('Wallet connected successfully!', 'success');
+                    await updateWalletInfo(currentAccount);
+                } else {
+                    throw new Error('No accounts found');
+                }
+            } catch (error) {
+                console.error('Connection error:', error);
+                if (error.code === 4001) {
+                    showStatus('Connection rejected by user', 'error');
+                } else {
+                    showStatus('Failed to connect wallet', 'error');
+                }
+                resetButton();
+            } finally {
+                connectBtn.classList.remove('connecting');
+            }
+        }
+
+        // Disconnect wallet
+        function disconnectWallet() {
+            currentAccount = null;
+            walletInfo.classList.remove('show');
+            resetButton();
+            showStatus('Wallet disconnected', 'success');
+        }
+
+        // Reset button to initial state
+        function resetButton() {
+            buttonText.textContent = 'Connect MetaMask';
+            connectBtn.disabled = false;
+        }
+
+        // Handle account changes
+        function handleAccountsChanged(accounts) {
+            if (accounts.length === 0) {
+                disconnectWallet();
+            } else if (accounts[0] !== currentAccount) {
+                currentAccount = accounts[0];
+                updateWalletInfo(currentAccount);
+            }
+        }
+
+        // Handle network changes
+        function handleChainChanged(chainId) {
+            if (currentAccount) {
+                updateWalletInfo(currentAccount);
+            }
+        }
+
+        // Initialize
+        function init() {
+            // Check if already connected
+            if (isMetaMaskInstalled()) {
+                window.ethereum.request({ method: 'eth_accounts' })
+                    .then(accounts => {
+                        if (accounts.length > 0) {
+                            currentAccount = accounts[0];
+                            buttonText.textContent = 'Connected';
+                            updateWalletInfo(currentAccount);
+                        }
+                    });
+
+                // Set up event listeners
+                window.ethereum.on('accountsChanged', handleAccountsChanged);
+                window.ethereum.on('chainChanged', handleChainChanged);
+            }
+        }
+
+        // Event listeners
+        connectBtn.addEventListener('click', () => {
+            if (currentAccount) {
+                // Already connected, maybe show some info or do nothing
+                return;
+            }
+            connectWallet();
+        });
+
+        disconnectBtn.addEventListener('click', disconnectWallet);
+
+        // Initialize when page loads
+        init();
+    </script>
+</body>
+</html>

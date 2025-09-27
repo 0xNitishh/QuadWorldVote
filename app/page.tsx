@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+
+import { useEffect, useState } from 'react'
 import { Header } from '@/components/Header'
 import { OrganizerFlow } from '@/components/OrganizerFlow'
 import { VoterFlow } from '@/components/VoterFlow'
@@ -9,6 +10,47 @@ import { ResultsFlow } from '@/components/ResultsFlow'
 export default function Home() {
   const [currentView, setCurrentView] = useState<'home' | 'organizer' | 'voter' | 'results'>('home')
   const [selectedContest, setSelectedContest] = useState<string | null>(null)
+  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const [connecting, setConnecting] = useState(false)
+
+  // Wallet connection logic (lifted from Header)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      (window as any).ethereum.request({ method: 'eth_accounts' }).then((accounts: string[]) => {
+        if (accounts && accounts.length > 0) {
+          setWalletAddress(accounts[0])
+        } else {
+          connectWallet()
+        }
+      })
+      ;(window as any).ethereum.on('accountsChanged', (accounts: string[]) => {
+        if (accounts && accounts.length > 0) {
+          setWalletAddress(accounts[0])
+        } else {
+          setWalletAddress(null)
+        }
+      })
+    }
+    // eslint-disable-next-line
+  }, [])
+
+  const connectWallet = async () => {
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      setConnecting(true)
+      try {
+        const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' })
+        if (accounts && accounts.length > 0) {
+          setWalletAddress(accounts[0])
+        }
+      } catch (err) {
+        // User rejected or error
+      } finally {
+        setConnecting(false)
+      }
+    } else {
+      alert('MetaMask is not installed.')
+    }
+  }
 
   // Mock contest data for demonstration
   const mockContestData = {
@@ -49,8 +91,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      <Header />
-      
+      <Header walletAddress={walletAddress} connecting={connecting} connectWallet={connectWallet} />
       <main className="container mx-auto px-4 py-8">
         {currentView === 'home' && (
           <div className="text-center">
@@ -135,7 +176,7 @@ export default function Home() {
                 ← Back to Home
               </button>
             </div>
-            <OrganizerFlow onContestCreated={() => setCurrentView('home')} />
+            <OrganizerFlow onContestCreated={() => setCurrentView('home')} walletAddress={walletAddress} />
           </div>
         )}
 

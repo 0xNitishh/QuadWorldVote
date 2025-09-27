@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { MiniKit, VerifyCommandInput, VerificationLevel, ISuccessResult } from '@worldcoin/minikit-js'
 import { Calendar, Clock, Users, Settings, Plus, CheckCircle } from 'lucide-react'
 import { MiniKitService } from '@/lib/minikit'
 
@@ -14,13 +15,17 @@ interface ContestFormData {
   allowSelfSubmit: boolean
 }
 
+
 interface OrganizerFlowProps {
   onContestCreated: (contestAddress: string) => void
+  walletAddress?: string | null
 }
 
-export function OrganizerFlow({ onContestCreated }: OrganizerFlowProps) {
-  const [step, setStep] = useState<'connect' | 'form' | 'creating' | 'success'>('connect')
-  const [walletAddress, setWalletAddress] = useState<string>('')
+
+export function OrganizerFlow({ onContestCreated, walletAddress }: OrganizerFlowProps) {
+  const [step, setStep] = useState<'verify' | 'form' | 'creating' | 'success'>('verify')
+  const [isVerified, setIsVerified] = useState(false)
+  const [proof, setProof] = useState<ISuccessResult | null>(null)
   const [formData, setFormData] = useState<ContestFormData>({
     title: '',
     description: '',
@@ -33,15 +38,25 @@ export function OrganizerFlow({ onContestCreated }: OrganizerFlowProps) {
   const [contestAddress, setContestAddress] = useState<string>('')
   const [error, setError] = useState<string>('')
 
-  const handleConnectWallet = async () => {
-    try {
-      const minikit = MiniKitService.getInstance()
-      const address = await minikit.connectWallet()
-      setWalletAddress(address)
-      setStep('form')
-    } catch (err) {
-      setError('Failed to connect wallet')
+
+
+  const handleVerify = async () => {
+    const verifyPayload: VerifyCommandInput = {
+      action: 'create-contest', // Set this to your action from the Worldcoin Developer Portal
+      verification_level: VerificationLevel.Orb
     }
+    if (!MiniKit.isInstalled()) {
+      alert('World App is not installed')
+      return
+    }
+    const { finalPayload } = await MiniKit.commandsAsync.verify(verifyPayload)
+    if (finalPayload.status === 'error') {
+      alert('Verification failed')
+      return
+    }
+    setProof(finalPayload as ISuccessResult)
+    setIsVerified(true)
+    setStep('form')
   }
 
   const handleSubmitContest = async (e: React.FormEvent) => {
@@ -70,32 +85,46 @@ export function OrganizerFlow({ onContestCreated }: OrganizerFlowProps) {
     }
   }
 
-  if (step === 'connect') {
+
+
+  if (step === 'verify') {
     return (
       <div className="max-w-md mx-auto text-center">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Settings className="w-8 h-8 text-blue-600" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Organizer Setup</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Verify with World ID</h2>
           <p className="text-gray-600 mb-6">
-            Connect your wallet to create and manage quadratic voting contests
+            Please verify your identity with World ID before creating a contest.
           </p>
           <button
-            onClick={handleConnectWallet}
+            onClick={handleVerify}
             className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
           >
-            Connect Wallet via MiniKit
+            Verify with World ID
           </button>
-          {error && (
-            <p className="text-red-600 text-sm mt-4">{error}</p>
-          )}
         </div>
       </div>
     )
   }
-
   if (step === 'form') {
+    // If walletAddress is not present, show a message
+    if (!walletAddress) {
+      return (
+        <div className="max-w-md mx-auto text-center">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Settings className="w-8 h-8 text-blue-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Organizer Setup</h2>
+            <p className="text-gray-600 mb-6">
+              Please connect your wallet from the top right to create and manage quadratic voting contests.
+            </p>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-8">
@@ -105,7 +134,7 @@ export function OrganizerFlow({ onContestCreated }: OrganizerFlowProps) {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-gray-900">Create New Contest</h2>
-              <p className="text-sm text-gray-500">Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</p>
+              <p className="text-sm text-gray-500">Connected: {walletAddress && `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`}</p>
             </div>
           </div>
 

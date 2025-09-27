@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Slider, CheckCircle, AlertCircle, Users, Zap } from 'lucide-react'
+import { IDKitWidget, ISuccessResult } from '@worldcoin/idkit'
+import { Sliders, CheckCircle, AlertCircle, Users, Zap } from 'lucide-react'
 import { MiniKitService, WorldIDProof } from '@/lib/minikit'
 
 interface Project {
@@ -25,6 +26,7 @@ interface VoterFlowProps {
 
 export function VoterFlow({ contestAddress, contestData, projects }: VoterFlowProps) {
   const [step, setStep] = useState<'verify' | 'vote' | 'submitting' | 'success'>('verify')
+  const [isVerified, setIsVerified] = useState(false)
   const [allocations, setAllocations] = useState<number[]>(new Array(projects.length).fill(0))
   const [totalCost, setTotalCost] = useState(0)
   const [worldIDProof, setWorldIDProof] = useState<WorldIDProof | null>(null)
@@ -36,15 +38,9 @@ export function VoterFlow({ contestAddress, contestData, projects }: VoterFlowPr
     setTotalCost(cost)
   }, [allocations])
 
-  const handleWorldIDVerification = async () => {
-    try {
-      const minikit = MiniKitService.getInstance()
-      const proof = await minikit.getWorldIDProof()
-      setWorldIDProof(proof)
-      setStep('vote')
-    } catch (err) {
-      setError('Failed to verify World ID')
-    }
+  const handleVerify = async (result: ISuccessResult) => {
+    setIsVerified(true)
+    setStep('vote')
   }
 
   const handleAllocationChange = (projectIndex: number, value: number) => {
@@ -90,12 +86,20 @@ export function VoterFlow({ contestAddress, contestData, projects }: VoterFlowPr
           <p className="text-gray-600 mb-6">
             Use World ID to prove you're a unique human and prevent sybil attacks
           </p>
-          <button
-            onClick={handleWorldIDVerification}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+          <IDKitWidget
+            app_id="your_app_id_here"
+            action="vote"
+            onSuccess={handleVerify}
           >
-            Verify with World ID
-          </button>
+            {({ open }: { open: () => void }) => (
+              <button
+                onClick={open}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+              >
+                Verify with World ID
+              </button>
+            )}
+          </IDKitWidget>
           {error && (
             <p className="text-red-600 text-sm mt-4">{error}</p>
           )}
@@ -142,12 +146,15 @@ export function VoterFlow({ contestAddress, contestData, projects }: VoterFlowPr
                     <span>0</span>
                     <span>Max: {Math.floor(Math.sqrt(contestData.creditsPerVoter))}</span>
                   </div>
-                  <Slider
-                    value={[allocations[index]]}
-                    onValueChange={([value]) => handleAllocationChange(index, value)}
+                  {/* Replace the icon with a real slider component */}
+                  <input
+                    type="range"
+                    min={0}
                     max={Math.floor(Math.sqrt(contestData.creditsPerVoter))}
                     step={1}
-                    className="w-full"
+                    value={allocations[index]}
+                    onChange={e => handleAllocationChange(index, Number(e.target.value))}
+                    className="w-full accent-blue-600"
                   />
                   <div className="text-xs text-gray-500">
                     Quadratic cost: {allocations[index] * allocations[index]} credits
