@@ -1,6 +1,6 @@
-# QuadVote Deployment Guide
+# QuadWorldVote Deployment Guide
 
-This guide will help you deploy the QuadVote mini-app to World Chain and make it available to World App users.
+This guide will help you deploy the QuadWorldVote mini-app to World Chain and make it available to World App users.
 
 ## Prerequisites
 
@@ -234,4 +234,4 @@ To submit for the World mini-app bounty:
 4. Document your implementation
 5. Submit according to bounty guidelines
 
-Your QuadVote mini-app is now ready for the World App ecosystem!
+Your QuadWorldVote mini-app is now ready for the World App ecosystem!

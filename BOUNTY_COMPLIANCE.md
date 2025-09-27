@@ -1,6 +1,6 @@
 # World Mini-App Bounty Compliance
 
-This document outlines how QuadVote meets all the requirements for the World mini-app bounty.
+This document outlines how QuadWorldVote meets all the requirements for the World mini-app bounty.
 
 ## Bounty Requirements ✅
 
@@ -115,7 +115,7 @@ The project is fully ready for deployment with:
 
 ## Innovation
 
-QuadVote brings several innovations to the World App ecosystem:
+QuadWorldVote brings several innovations to the World App ecosystem:
 - **Quadratic Voting**: More democratic than simple voting
 - **Verifiable Results**: All data on-chain and verifiable
 - **Human Verification**: Prevents sybil attacks

@@ -25,7 +25,7 @@ const worldChain = {
 }
 
 const config = getDefaultConfig({
-  appName: 'QuadVote',
+  appName: 'QuadWorldVote',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '',
   chains: [worldChain, mainnet, sepolia],
   ssr: false,

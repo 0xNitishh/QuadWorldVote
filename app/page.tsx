@@ -40,9 +40,9 @@ export default function Home() {
           {!isConnected ? (
             <div className="max-w-md mx-auto text-center">
               <div className="bg-white rounded-lg shadow-lg p-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                  Welcome to QuadVote
-                </h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                Welcome to QuadWorldVote
+              </h1>
                 <p className="text-gray-600 mb-6">
                   A decentralized quadratic voting platform on World Chain
                 </p>

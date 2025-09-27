@@ -21,7 +21,7 @@ export function Header({ currentView, onViewChange, isConnected, isVerified }: H
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <Vote className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">QuadVote</h1>
+            <h1 className="text-xl font-bold text-gray-900">QuadWorldVote</h1>
           </div>
           
           {isVerified && (

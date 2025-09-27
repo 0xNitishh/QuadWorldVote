@@ -6,7 +6,7 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'QuadVote - Quadratic Voting on World Chain',
+  title: 'QuadWorldVote - Quadratic Voting on World Chain',
   description: 'A decentralized quadratic voting platform built on World Chain with World ID verification',
 }
 

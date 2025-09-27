@@ -1,4 +1,4 @@
-# QuadVote - Quadratic Voting on World Chain
+# QuadWorldVote - Quadratic Voting on World Chain
 
 A decentralized quadratic voting platform built on World Chain with World ID verification. This mini-app allows users to create and participate in quadratic voting contests with verifiable, on-chain results.
 
@@ -38,8 +38,8 @@ A decentralized quadratic voting platform built on World Chain with World ID ver
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd QuadVote
+git clone https://github.com/0xNitishh/QuadWorldVote.git
+cd QuadWorldVote
 ```
 
 2. Install dependencies:

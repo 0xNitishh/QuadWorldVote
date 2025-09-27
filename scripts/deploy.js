@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 
 async function main() {
-  console.log("Deploying QuadVote contracts to World Chain...");
+  console.log("Deploying QuadWorldVote contracts to World Chain...");
 
   // World ID contract address on World Chain (you'll need to get the actual address)
   const WORLD_ID_ADDRESS = process.env.WORLD_ID_CONTRACT_ADDRESS || "0x1234567890123456789012345678901234567890";
