@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MiniKit, VerifyCommandInput, VerificationLevel, ISuccessResult } from '@worldcoin/minikit-js'
+import { IDKitWidget, ISuccessResult } from '@worldcoin/idkit'
 import { Calendar, Clock, Users, Settings, Plus, CheckCircle } from 'lucide-react'
 import { MiniKitService } from '@/lib/minikit'
 
@@ -25,7 +25,6 @@ interface OrganizerFlowProps {
 export function OrganizerFlow({ onContestCreated, walletAddress }: OrganizerFlowProps) {
   const [step, setStep] = useState<'verify' | 'form' | 'creating' | 'success'>('verify')
   const [isVerified, setIsVerified] = useState(false)
-  const [proof, setProof] = useState<ISuccessResult | null>(null)
   const [formData, setFormData] = useState<ContestFormData>({
     title: '',
     description: '',
@@ -40,21 +39,7 @@ export function OrganizerFlow({ onContestCreated, walletAddress }: OrganizerFlow
 
 
 
-  const handleVerify = async () => {
-    const verifyPayload: VerifyCommandInput = {
-      action: 'create-contest', // Set this to your action from the Worldcoin Developer Portal
-      verification_level: VerificationLevel.Orb
-    }
-    if (!MiniKit.isInstalled()) {
-      alert('World App is not installed')
-      return
-    }
-    const { finalPayload } = await MiniKit.commandsAsync.verify(verifyPayload)
-    if (finalPayload.status === 'error') {
-      alert('Verification failed')
-      return
-    }
-    setProof(finalPayload as ISuccessResult)
+  const handleVerify = async (result: ISuccessResult) => {
     setIsVerified(true)
     setStep('form')
   }
@@ -98,12 +83,20 @@ export function OrganizerFlow({ onContestCreated, walletAddress }: OrganizerFlow
           <p className="text-gray-600 mb-6">
             Please verify your identity with World ID before creating a contest.
           </p>
-          <button
-            onClick={handleVerify}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+          <IDKitWidget
+            app_id="app_586fa9a8b61bd52d88726bf00244f8cd"
+            action="create-contest"
+            onSuccess={handleVerify}
           >
-            Verify with World ID
-          </button>
+            {({ open }: { open: () => void }) => (
+              <button
+                onClick={open}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200"
+              >
+                Verify with World ID
+              </button>
+            )}
+          </IDKitWidget>
         </div>
       </div>
     )
